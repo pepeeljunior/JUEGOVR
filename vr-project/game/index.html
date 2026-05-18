@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mundo Perdido VR — Escena 3D</title>
+    <link rel="icon" href="../assets/icons/favicon.png" type="image/png">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #080d06;
+            color: #e8dfc0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            width: 100vw; height: 100vh;
+        }
+
+        #canvas-container { width: 100%; height: 100%; }
+        #canvas-container canvas { display: block; }
+
+        /* ── HUD overlay (solo PC) ── */
+        #hud {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,15,7,0.75); border: 1px solid rgba(212,168,67,0.2);
+            border-radius: 8px; padding: 8px 20px; font-size: 13px;
+            letter-spacing: 2px; color: rgba(212,168,67,0.8);
+            pointer-events: none; z-index: 10; white-space: nowrap;
+        }
+
+        #anim-label {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,15,7,0.8); border: 1px solid rgba(69,196,90,0.3);
+            border-radius: 6px; padding: 6px 18px; font-size: 12px;
+            letter-spacing: 3px; color: rgba(69,196,90,0.8);
+            pointer-events: none; z-index: 10; opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* ── VR Button override ── */
+        #VRButton {
+            position: fixed !important; bottom: 24px !important;
+            left: 50% !important; transform: translateX(-50%) !important;
+            z-index: 20 !important;
+        }
+
+        /* ── Crosshair ── */
+        #crosshair {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 14px; height: 14px; pointer-events: none; z-index: 10;
+        }
+        #crosshair::before, #crosshair::after {
+            content: ''; position: absolute; background: rgba(212,168,67,0.6);
+        }
+        #crosshair::before { width: 2px; height: 14px; left: 6px; top: 0; }
+        #crosshair::after  { width: 14px; height: 2px; left: 0; top: 6px; }
+
+        /* ── Footer (requerido práctica) ── */
+        #game-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(10,15,7,0.85); border-top: 1px solid rgba(212,168,67,0.15);
+            padding: 4px 20px; display: flex; justify-content: space-between;
+            align-items: center; z-index: 10; pointer-events: none;
+        }
+
+        #game-footer h1 {
+            font-family: Arial, sans-serif; font-weight: bold;
+            font-size: 14px; color: #d4a843;
+        }
+
+        .footer-info {
+            font-family: Arial, sans-serif; font-size: 11px;
+            color: rgba(212,168,67,0.4); letter-spacing: 1px;
+        }
+
+        /* ── Loading screen ── */
+        #loading {
+            position: fixed; inset: 0; background: #080d06;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 100;
+        }
+
+        #loading h2 {
+            font-family: Arial, sans-serif; font-weight: bold;
+            font-size: 28px; color: #d4a843; margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+
+        .progress-bar {
+            width: 300px; height: 4px;
+            background: rgba(212,168,67,0.15); border-radius: 2px; overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #d4a843, #f0c060);
+            border-radius: 2px; width: 0%; transition: width 0.3s;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0%   { filter: brightness(1); }
+            50%  { filter: brightness(1.4); }
+            100% { filter: brightness(1); }
+        }
+
+        .loading-hint {
+            font-family: Arial, sans-serif; font-size: 12px;
+            color: rgba(212,168,67,0.4); margin-top: 16px;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+    <h2>MUNDO PERDIDO</h2>
+    <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+    <div class="loading-hint" id="loading-hint">Cargando escenario...</div>
+</div>
+
+<!-- HUD PC -->
+<div id="hud">🚶 CAMINAR &nbsp;|&nbsp; SHIFT: CORRER &nbsp;|&nbsp; ESPACIO: SALTAR &nbsp;|&nbsp; B: BAILAR &nbsp;|&nbsp; Q/E: GIRAR 90°</div>
+<div id="anim-label">CAMINANDO</div>
+<div id="crosshair"></div>
+
+<!-- Footer requerido -->
+<div id="game-footer">
+    <h1>MUNDO PERDIDO — VR EXPLORER</h1>
+    <div class="footer-info">
+        Alan González · No.Control: 21XXXXX &nbsp;|&nbsp; Graficación · Práctica 3.7 · Mayo 2025
+    </div>
+</div>
+
+<div id="canvas-container"></div>
+
+<!-- Three.js r169 desde CDN -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module" src="main.js"></script>
+
+</body>
+</html>

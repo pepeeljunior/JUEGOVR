@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR EXPLORER — Mundo Perdido</title>
+    <link rel="icon" href="assets/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gold:    #d4a843;
+            --gold2:   #f0c060;
+            --green:   #2d7a3a;
+            --green2:  #45c45a;
+            --dark:    #0a0f07;
+            --dark2:   #111a0d;
+            --fog:     rgba(180,210,160,0.07);
+        }
+
+        body {
+            background: var(--dark);
+            color: #e8dfc0;
+            font-family: 'Raleway', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── CANVAS FONDO ── */
+        #bg-canvas {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            position: relative; min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 1; padding: 40px 20px; text-align: center;
+        }
+
+        .badge {
+            font-family: 'Raleway', sans-serif; font-size: 11px;
+            letter-spacing: 7px; color: rgba(212,168,67,0.55);
+            text-transform: uppercase; margin-bottom: 20px;
+            animation: fadeUp 1s ease both;
+        }
+
+        .hero-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(42px, 10vw, 110px);
+            font-weight: 900; line-height: 0.9;
+            margin-bottom: 10px;
+            animation: fadeUp 1s 0.15s ease both;
+            background: linear-gradient(160deg, #f0c060, #d4a843, #a0783a, #d4a843);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(212,168,67,0.4));
+        }
+
+        .hero-subtitle {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(20px, 4vw, 42px); font-weight: 400;
+            color: var(--green2); letter-spacing: 4px;
+            margin-bottom: 6px; animation: fadeUp 1s 0.25s ease both;
+            text-shadow: 0 0 20px rgba(69,196,90,0.4), 0 0 50px rgba(69,196,90,0.2);
+        }
+
+        .hero-vr {
+            font-family: 'Raleway', sans-serif; font-size: 13px;
+            letter-spacing: 8px; color: rgba(232,223,192,0.3);
+            text-transform: uppercase; margin-bottom: 60px;
+            animation: fadeUp 1s 0.35s ease both;
+        }
+
+        .divider {
+            width: 160px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 0 auto 50px; animation: fadeUp 1s 0.45s ease both;
+        }
+
+        .btn-play {
+            display: inline-block; font-family: 'Cinzel Decorative', serif;
+            font-size: 13px; font-weight: 700; letter-spacing: 4px;
+            text-decoration: none; color: var(--dark);
+            background: linear-gradient(135deg, var(--gold2), var(--gold), #a0783a);
+            border: none; border-radius: 4px; padding: 18px 64px;
+            cursor: pointer; box-shadow: 0 0 40px rgba(212,168,67,0.4), 0 4px 20px rgba(0,0,0,0.6);
+            transition: transform 0.15s, box-shadow 0.2s;
+            animation: fadeUp 1s 0.55s ease both; margin-bottom: 14px;
+        }
+        .btn-play:hover {
+            transform: scale(1.06);
+            box-shadow: 0 0 70px rgba(212,168,67,0.6), 0 4px 30px rgba(0,0,0,0.7);
+        }
+        .btn-play:active { transform: scale(0.97); }
+
+        .btn-hint {
+            display: block; font-size: 10px; letter-spacing: 3px;
+            color: rgba(232,223,192,0.2); text-transform: uppercase;
+            animation: fadeUp 1s 0.65s ease both; margin-bottom: 0;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── SECCIONES ── */
+        .section {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto; padding: 80px 30px;
+        }
+
+        .section-label {
+            font-family: 'Raleway', sans-serif; font-size: 10px;
+            letter-spacing: 6px; color: var(--gold); text-transform: uppercase;
+            margin-bottom: 12px; opacity: 0.7;
+        }
+
+        .section-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: clamp(20px, 3.5vw, 34px); font-weight: 700;
+            margin-bottom: 40px; color: var(--gold2);
+        }
+
+        hr.sec-line {
+            border: none; border-top: 1px solid rgba(212,168,67,0.1); margin: 0;
+            position: relative; z-index: 1;
+        }
+
+        /* ── INSTRUCCIONES ── */
+        .instr-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px;
+        }
+
+        .instr-card {
+            background: rgba(212,168,67,0.04); border: 1px solid rgba(212,168,67,0.12);
+            border-radius: 10px; padding: 22px; transition: all 0.2s;
+        }
+        .instr-card:hover {
+            border-color: rgba(212,168,67,0.3); background: rgba(212,168,67,0.07);
+        }
+
+        .instr-icon { font-size: 26px; margin-bottom: 10px; }
+
+        .instr-title {
+            font-family: 'Cinzel Decorative', serif; font-size: 11px;
+            letter-spacing: 2px; color: var(--gold); margin-bottom: 10px; text-transform: uppercase;
+        }
+
+        .instr-desc { font-size: 14px; color: rgba(232,223,192,0.55); line-height: 1.6; }
+
+        .key {
+            display: inline-block; background: rgba(212,168,67,0.1);
+            border: 1px solid rgba(212,168,67,0.3); border-radius: 4px;
+            padding: 2px 8px; font-family: 'Cinzel Decorative', serif; font-size: 10px;
+            color: var(--gold); letter-spacing: 1px; margin: 2px;
+        }
+
+        /* ── VR BANNER ── */
+        .vr-banner {
+            background: linear-gradient(135deg, rgba(45,122,58,0.1), rgba(69,196,90,0.05));
+            border: 1px solid rgba(69,196,90,0.2); border-radius: 12px;
+            padding: 30px 36px; display: flex; align-items: center;
+            gap: 28px; flex-wrap: wrap;
+        }
+        .vr-icon { font-size: 52px; }
+        .vr-text h3 {
+            font-family: 'Cinzel Decorative', serif; font-size: 17px;
+            color: var(--green2); margin-bottom: 8px;
+        }
+        .vr-text p { font-size: 14px; color: rgba(232,223,192,0.5); line-height: 1.6; }
+
+        /* ── EQUIPO ── */
+        .team-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;
+        }
+
+        .team-card {
+            background: rgba(212,168,67,0.04); border: 1px solid rgba(212,168,67,0.12);
+            border-radius: 10px; padding: 24px; text-align: center;
+        }
+
+        .team-avatar {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: var(--dark); font-family: 'Cinzel Decorative', serif;
+            font-size: 22px; font-weight: 900; display: flex;
+            align-items: center; justify-content: center; margin: 0 auto 14px;
+            box-shadow: 0 0 20px rgba(212,168,67,0.3);
+        }
+
+        .team-name {
+            font-family: 'Cinzel Decorative', serif; font-size: 13px;
+            color: var(--gold2); margin-bottom: 4px;
+        }
+
+        .team-nc {
+            font-size: 12px; color: rgba(232,223,192,0.4);
+            letter-spacing: 2px; font-family: 'Raleway', sans-serif;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            position: relative; z-index: 1;
+            border-top: 1px solid rgba(212,168,67,0.12);
+            background: rgba(10,15,7,0.9); padding: 40px 30px 30px;
+            text-align: center;
+        }
+
+        footer h1 {
+            font-family: Arial, sans-serif; font-weight: bold;
+            font-size: 28px; color: var(--gold2);
+            margin-bottom: 6px; letter-spacing: 2px;
+        }
+
+        .footer-sub {
+            font-family: Arial, sans-serif; font-size: 14px;
+            color: rgba(212,168,67,0.5); letter-spacing: 1px; margin-bottom: 4px;
+        }
+
+        .footer-mat {
+            font-family: Arial, sans-serif; font-size: 12px;
+            color: rgba(232,223,192,0.25); margin-bottom: 30px;
+        }
+
+        .key-table {
+            display: inline-grid; grid-template-columns: auto 1fr;
+            gap: 8px 20px; text-align: left; margin: 0 auto;
+        }
+
+        .kt-key {
+            font-family: Arial, sans-serif; font-weight: bold; font-size: 13px;
+            color: var(--gold); background: rgba(212,168,67,0.1);
+            border: 1px solid rgba(212,168,67,0.3); border-radius: 4px;
+            padding: 3px 10px; text-align: center;
+        }
+
+        .kt-desc {
+            font-family: Arial, sans-serif; font-size: 13px;
+            color: rgba(232,223,192,0.5); display: flex; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+    <div class="badge">Graficación · Práctica 3.7 — Escenarios VR</div>
+    <h1 class="hero-title">MUNDO<br>PERDIDO</h1>
+    <div class="hero-subtitle">◆ VR EXPLORER ◆</div>
+    <div class="hero-vr">Realidad Virtual · Meta Quest 3 · WebXR</div>
+    <div class="divider"></div>
+    <a href="game/index.html" class="btn-play">▶ &nbsp; INICIAR AVENTURA</a>
+    <span class="btn-hint">Requiere Meta Quest 3 · WebXR</span>
+</section>
+
+<hr class="sec-line">
+
+<!-- ══ VR ══ -->
+<div class="section">
+    <div class="vr-banner">
+        <div class="vr-icon">🥽</div>
+        <div class="vr-text">
+            <h3>Experiencia Meta Quest 3</h3>
+            <p>
+                Diseñado con soporte WebXR nativo para Meta Quest 3. Abre el juego desde el
+                navegador de tu visor y presiona <strong style="color:var(--green2)">"ENTER VR"</strong>
+                para inmergirte en el mundo. Los controles de mando detectan joystick y gatillos automáticamente.
+                En PC puedes jugar con teclado y ratón.
+            </p>
+        </div>
+    </div>
+</div>
+
+<hr class="sec-line">
+
+<!-- ══ INSTRUCCIONES ══ -->
+<div class="section">
+    <div class="section-label">Manual de explorador</div>
+    <h2 class="section-title">Controles</h2>
+    <div class="instr-grid">
+
+        <div class="instr-card">
+            <div class="instr-icon">🚶</div>
+            <div class="instr-title">Caminar</div>
+            <div class="instr-desc">
+                <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> para mover al personaje.<br><br>
+                VR: Joystick izquierdo para moverse.
+            </div>
+        </div>
+
+        <div class="instr-card">
+            <div class="instr-icon">🏃</div>
+            <div class="instr-title">Correr</div>
+            <div class="instr-desc">
+                Mantén <span class="key">SHIFT</span> mientras caminas para correr.<br><br>
+                VR: Presiona el stick izquierdo.
+            </div>
+        </div>
+
+        <div class="instr-card">
+            <div class="instr-icon">⬆️</div>
+            <div class="instr-title">Saltar</div>
+            <div class="instr-desc">
+                <span class="key">ESPACIO</span> para saltar.<br><br>
+                VR: Botón A del mando derecho.
+            </div>
+        </div>
+
+        <div class="instr-card">
+            <div class="instr-icon">💃</div>
+            <div class="instr-title">Bailar</div>
+            <div class="instr-desc">
+                Presiona <span class="key">B</span> para activar la animación de baile.<br><br>
+                VR: Botón B del mando derecho.
+            </div>
+        </div>
+
+        <div class="instr-card">
+            <div class="instr-icon">↩️</div>
+            <div class="instr-title">Girar 90°</div>
+            <div class="instr-desc">
+                <span class="key">Q</span> girar izquierda · <span class="key">E</span> girar derecha (90° exactos).<br><br>
+                VR: Joystick derecho izq/der.
+            </div>
+        </div>
+
+        <div class="instr-card">
+            <div class="instr-icon">📷</div>
+            <div class="instr-title">Cámara</div>
+            <div class="instr-desc">
+                Mueve el ratón para rotar la cámara alrededor del personaje.<br><br>
+                VR: El headset controla la vista.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<hr class="sec-line">
+
+<!-- ══ EQUIPO ══ -->
+<div class="section">
+    <div class="section-label">Exploradores</div>
+    <h2 class="section-title">Integrantes del Equipo</h2>
+    <div class="team-grid">
+        <!-- ▼▼ MODIFICA CON TUS DATOS REALES ▼▼ -->
+        <div class="team-card">
+            <div class="team-avatar">A</div>
+            <div class="team-name">Alan González Pérez</div>
+            <div class="team-nc">No. Control: 21XXXXX</div>
+        </div>
+        <div class="team-card">
+            <div class="team-avatar">B</div>
+            <div class="team-name">Integrante Dos</div>
+            <div class="team-nc">No. Control: 21XXXXX</div>
+        </div>
+        <!-- Si son más, copia un team-card más -->
+    </div>
+</div>
+
+<!-- ══ FOOTER (requerido por práctica) ══ -->
+<footer>
+    <h1>MUNDO PERDIDO — VR EXPLORER</h1>
+    <div class="footer-sub">Graficación · Práctica 3.7 · Escenarios VR · Meta Quest 3</div>
+    <div class="footer-mat">Universidad · Facultad de Ingeniería · Mayo 2025</div>
+
+    <!-- Tablero de instrucciones -->
+    <div class="key-table">
+        <div class="kt-key">W / A / S / D</div><div class="kt-desc">Mover personaje</div>
+        <div class="kt-key">SHIFT</div><div class="kt-desc">Correr</div>
+        <div class="kt-key">ESPACIO</div><div class="kt-desc">Saltar</div>
+        <div class="kt-key">B</div><div class="kt-desc">Bailar</div>
+        <div class="kt-key">Q / E</div><div class="kt-desc">Girar 90° izq / der</div>
+        <div class="kt-key">RATÓN</div><div class="kt-desc">Rotar cámara</div>
+        <div class="kt-key">M</div><div class="kt-desc">Silenciar / Reanudar música</div>
+        <div class="kt-key">R</div><div class="kt-desc">Reiniciar escena</div>
+        <div class="kt-key">ENTER VR</div><div class="kt-desc">Activar modo Meta Quest 3</div>
+    </div>
+</footer>
+
+<script>
+// ── Partículas de hojas / luciérnagas de fondo ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+
+function initParticles() {
+    particles = Array.from({ length: 80 }, () => ({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 2 + 0.5,
+        a: Math.random() * 0.6 + 0.1,
+        da: (Math.random() - 0.5) * 0.008,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: -(Math.random() * 0.4 + 0.1),
+        color: Math.random() > 0.5
+            ? `rgba(${Math.floor(140+Math.random()*80)},${Math.floor(180+Math.random()*60)},${Math.floor(80+Math.random()*60)},`
+            : `rgba(${Math.floor(212+Math.random()*40)},${Math.floor(168+Math.random()*60)},${Math.floor(60+Math.random()*40)},`
+    }));
+}
+
+function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.a = Math.max(0.05, Math.min(0.7, p.a + p.da));
+        if (p.a <= 0.05 || p.a >= 0.7) p.da *= -1;
+        if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + p.a + ')';
+        ctx.fill();
+    });
+    requestAnimationFrame(drawParticles);
+}
+
+window.addEventListener('resize', () => { resize(); initParticles(); });
+resize(); initParticles(); drawParticles();
+</script>
+</body>
+</html>
